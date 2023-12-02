@@ -1,3 +1,11 @@
+<?php
+session_start();
+include 'backend/koneksi.php';
+
+$sqld = "SELECT * FROM kepadatan";
+$resultd = mysqli_query($conn, $sqld);
+$rowd = mysqli_fetch_assoc($resultd);
+?>
 <!doctype html>
 <html lang="en">
 
@@ -82,6 +90,13 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQqCVzh9CHvZAJrfAoR-mVZD-dZxap2Xo&callback=initGoogleMap" async defer></script>
   <script>
     var googleMap;
+    var markers = [];
+
+    var googleMap;
+    var markers = [];
+    var currentLocationMarker;
+    var directionsService;
+    var directionsRenderer;
 
     function initGoogleMap() {
       googleMap = new google.maps.Map(document.getElementById("google-map"), {
@@ -89,8 +104,40 @@
           lat: 0.537488,
           lng: 101.448387
         },
-        zoom: 10,
+        zoom: 15,
       });
+
+      directionsService = new google.maps.DirectionsService();
+      directionsRenderer = new google.maps.DirectionsRenderer({
+        map: googleMap
+      });
+
+      <?php
+      while ($rowd = mysqli_fetch_assoc($resultd)) {
+        $nama = $rowd['nama_daerah'];
+        $long = $rowd['longitude'];
+        $lat = $rowd['latitude'];
+        $level = $rowd['kepadatan'];
+      ?>
+        var marker = new google.maps.Marker({
+          position: {
+            lat: <?php echo $lat; ?>,
+            lng: <?php echo $long; ?>
+          },
+          map: googleMap,
+          title: '<?php echo $nama; ?>',
+          level: '<?php echo $level; ?>'
+        });
+
+        marker.addListener('click', function() {
+          updateMarkerColor(marker);
+          calculateAndDisplayRoute(marker.getPosition());
+        });
+
+        markers.push(marker);
+      <?php
+      }
+      ?>
     }
   </script>
 </body>
