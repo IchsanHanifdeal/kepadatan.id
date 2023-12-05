@@ -1,14 +1,15 @@
 <?php
 session_start();
-include '../../backend/koneksi.php';
+require '../../backend/koneksi.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $namaDaerah = mysqli_real_escape_string($conn, $_POST["nama_daerah"]);
     $latitude = mysqli_real_escape_string($conn, $_POST["latitude"]);
     $longitude = mysqli_real_escape_string($conn, $_POST["longitude"]);
-    $kepadatan = mysqli_real_escape_string($conn, $_POST["kepadatan"]);
+    $level = mysqli_real_escape_string($conn, $_POST["level"]);
+    $radius = mysqli_real_escape_string($conn, $_POST["radius"]);
 
-    $sql = "INSERT INTO kepadatan (nama_daerah, latitude, longitude, kepadatan) VALUES ('$namaDaerah', '$latitude', '$longitude', '$kepadatan')";
+    $sql = "INSERT INTO kepadatan (nama_daerah, latitude, longitude, level, radius) VALUES ('$namaDaerah', '$latitude', '$longitude', '$level', '$radius')";
     $result = mysqli_query($conn, $sql);
 
     if ($result) {
@@ -125,8 +126,17 @@ mysqli_close($conn);
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="level" class="form-label">Kepadatan:</label>
-                                    <input type="number" name="kepadatan" class="form-control" id="level" required>
+                                    <label for="level" class="form-label">Level:</label>
+                                    <select name="level" id="level" class="form-select" required>
+                                        <option value="rendah">Rendah</option>
+                                        <option value="menengah">Menengah</option>
+                                        <option value="tinggi">Tinggi</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="radius" class="form-label">Radius (M):</label>
+                                    <input type="number" name="radius" class="form-control" id="radius" required>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary mt-3">Tambah Data</button>

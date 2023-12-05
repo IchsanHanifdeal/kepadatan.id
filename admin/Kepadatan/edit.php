@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '../../backend/koneksi.php';
+require '../../backend/koneksi.php';
 
 $idToUpdate = '';
 
@@ -15,7 +15,8 @@ if (isset($_GET['id'])) {
         $nama = $rowData['nama_daerah'];
         $lat = $rowData['latitude'];
         $long = $rowData['longitude'];
-        $level = $rowData['kepadatan'];
+        $level = $rowData['level'];
+        $radius = $rowData['radius'];
     }
 }
 
@@ -23,9 +24,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $namaDaerah = mysqli_real_escape_string($conn, $_POST["nama_daerah"]);
     $latitude = mysqli_real_escape_string($conn, $_POST["latitude"]);
     $longitude = mysqli_real_escape_string($conn, $_POST["longitude"]);
-    $kepadatan = mysqli_real_escape_string($conn, $_POST["kepadatan"]);
+    $level = mysqli_real_escape_string($conn, $_POST["level"]);
+    $radius = mysqli_real_escape_string($conn, $_POST["radius"]);
 
-    $sqlUpdate = "UPDATE kepadatan SET nama_daerah = '$namaDaerah', latitude = '$latitude', longitude = '$longitude', kepadatan = '$kepadatan' WHERE id = '$idToUpdate'";
+    $sqlUpdate = "UPDATE kepadatan SET nama_daerah = '$namaDaerah', latitude = '$latitude', longitude = '$longitude', level = '$level', radius='$radius' WHERE id = '$idToUpdate'";
     $resultUpdate = mysqli_query($conn, $sqlUpdate);
 
     if ($resultUpdate) {
@@ -142,8 +144,22 @@ mysqli_close($conn);
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="level" class="form-label">Kepadatan:</label>
-                                    <input type="number" name="kepadatan" class="form-control" id="level" value="<?php echo $kepadatan; ?>" required>
+                                    <label for="level" class="form-label">Level:</label>
+                                    <select name="level" id="level" class="form-select" required>
+                                        <?php
+                                        $options = ['rendah', 'menengah', 'tinggi'];
+
+                                        foreach ($options as $option) {
+                                            $selected = ($level == $option) ? 'selected' : '';
+                                            echo "<option value=\"$option\" $selected>$option</option>";
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="radius" class="form-label">Radius (M):</label>
+                                    <input type="number" name="radius" class="form-control" value="<?php echo $radius; ?>" id="radius" required>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary mt-3">Edit</button>
@@ -172,7 +188,7 @@ mysqli_close($conn);
     </script>
     <script src="../../assets/dashboard/assets/js/material-dashboard.min.js?v=3.1.0"></script>
     <script>
-        let map, marker;
+        let map, marker, circle;
 
         function initMap() {
             map = new google.maps.Map(document.getElementById("map"), {
@@ -202,6 +218,21 @@ mysqli_close($conn);
                     map: map,
                 });
             }
+
+            if (circle) {
+                circle.setMap(null);
+            }
+
+            circle = new google.maps.Circle({
+                strokeColor: "#FF0000",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: "#FF0000",
+                fillOpacity: 0.35,
+                map: map,
+                center: location,
+                radius: 1000,
+            });
 
             $("#latitude").val(location.lat());
             $("#longitude").val(location.lng());

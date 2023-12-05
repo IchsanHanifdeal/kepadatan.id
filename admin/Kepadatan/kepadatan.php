@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '../../backend/koneksi.php';
+require '../../backend/koneksi.php';
 
 $sqld = "SELECT * FROM kepadatan";
 $resultd = mysqli_query($conn, $sqld);
@@ -113,8 +113,8 @@ $rowd = mysqli_fetch_assoc($resultd);
                                                 $nama = $rowd['nama_daerah'];
                                                 $longitude = $rowd['longitude'];
                                                 $latitude = $rowd['latitude'];
-                                                $kepadatan = $rowd['kepadatan'];
-                                        ?>
+                                                $kepadatan = $rowd['level'];
+                                                ?>
                                                 <tr>
                                                     <td class="text-center"><?php echo $no++; ?></td>
                                                     <td><?php echo $nama; ?></td>
@@ -128,7 +128,7 @@ $rowd = mysqli_fetch_assoc($resultd);
                                                         <a class="btn btn-danger" href="#" onclick="confirmDelete(<?php echo $id; ?>)"><i class="fas fa-trash"></i></a>
                                                     </td>
                                                 </tr>
-                                        <?php
+                                                <?php
                                             }
                                         } else {
                                             echo "<tr><td colspan='10'>Tidak ada data.</td></tr>";
@@ -163,9 +163,10 @@ $rowd = mysqli_fetch_assoc($resultd);
     <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
     <script src="../../assets/dashboard/assets/js/material-dashboard.min.js?v=3.1.0"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQqCVzh9CHvZAJrfAoR-mVZD-dZxap2Xo&callback=initGoogleMap" async defer></script>
-    <script>
+        <script>
         var googleMap;
         var markers = [];
+        var circles = [];
 
         function initGoogleMap() {
             googleMap = new google.maps.Map(document.getElementById("google-map"), {
@@ -173,7 +174,7 @@ $rowd = mysqli_fetch_assoc($resultd);
                     lat: 0.537488,
                     lng: 101.448387
                 },
-                zoom: 10,
+                zoom: 15,
             });
 
             <?php
@@ -182,10 +183,27 @@ $rowd = mysqli_fetch_assoc($resultd);
                 $nama = $rowd['nama_daerah'];
                 $long = $rowd['longitude'];
                 $lat = $rowd['latitude'];
-                $kepadatan = $rowd['kepadatan'];
+                $level = $rowd['level'];
+                $radius = $rowd['radius'];
 
-                if (!empty($lat) && !empty($long)) {
-            ?>
+                if (!empty($lat) && !empty($long) && !empty($radius)) {
+                    $icon = '';
+                    $strokeColor = '';
+                    $fillColor = '';
+                    if ($level == 'rendah') {
+                        $icon = 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+                        $strokeColor = '#0000FF';
+                        $fillColor = '#0000FF';
+                    } else if ($level == 'menengah') {
+                        $icon = 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
+                        $strokeColor = '#FFFF00';
+                        $fillColor = '#FFFF00';
+                    } else if ($level == 'tinggi') {
+                        $icon = 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
+                        $strokeColor = '#FF0000';
+                        $fillColor = '#FF0000';
+                    }
+                    ?>
                     var marker = new google.maps.Marker({
                         position: {
                             lat: <?php echo $lat; ?>,
@@ -193,7 +211,22 @@ $rowd = mysqli_fetch_assoc($resultd);
                         },
                         map: googleMap,
                         title: '<?php echo $nama; ?>',
-                        kepadatan: '<?php echo $kepadatan; ?>'
+                        level: '<?php echo $level; ?>',
+                        icon: '<?php echo $icon; ?>'
+                    });
+
+                    var circle = new google.maps.Circle({
+                        strokeColor: '<?php echo $strokeColor; ?>',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: '<?php echo $fillColor; ?>',
+                        fillOpacity: 0.35,
+                        map: googleMap,
+                        center: {
+                            lat: <?php echo $lat; ?>,
+                            lng: <?php echo $long; ?>
+                        },
+                        radius: <?php echo $radius; ?>
                     });
 
                     marker.addListener('click', function() {
@@ -202,7 +235,8 @@ $rowd = mysqli_fetch_assoc($resultd);
                     });
 
                     markers.push(marker);
-            <?php
+                    circles.push(circle);
+                    <?php
                 }
             }
             ?>
